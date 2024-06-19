@@ -8,6 +8,7 @@ public class PlayerMovement : MonoBehaviour
     public Transform destination;
     public LayerMask wall;
     public LayerMask canPush;
+    public bool canSwap = true;
 
     // Start is called before the first frame update
     void Start()
@@ -51,9 +52,10 @@ public class PlayerMovement : MonoBehaviour
         else if (pushResult) {
             GameObject obj = pushResult.gameObject;
             PushScript pushScript = obj.GetComponent<PushScript>();
-            if (pushScript.push(new Vector3(x, y, 0f))) {
-                destination.position += new Vector3(x, y, 0f);
+            if (!pushScript.push(new Vector3(x, y, 0f))) {
+                pushScript.swap(new Vector3(x, y, 0f));
             }
+            destination.position += new Vector3(x, y, 0f);
         }
     }
 }
