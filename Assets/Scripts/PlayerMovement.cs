@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class PlayerMovement : MonoBehaviour
     public Transform destination;
     public LayerMask wall;
     public LayerMask canPush;
+    public Tilemap path;
     public bool canSwap = true;
 
     // Start is called before the first frame update
@@ -45,6 +47,7 @@ public class PlayerMovement : MonoBehaviour
     void movePlayer(float x, float y) {
         Collider2D wallResult = Physics2D.OverlapCircle(destination.position + new Vector3(x, y, 0f), 0.2f, wall);
         Collider2D pushResult = Physics2D.OverlapCircle(destination.position + new Vector3(x, y, 0f), 0.2f, canPush);
+
         if (!wallResult && !pushResult)
         {
             destination.position += new Vector3(x, y, 0f);
@@ -52,7 +55,7 @@ public class PlayerMovement : MonoBehaviour
         else if (pushResult) {
             GameObject obj = pushResult.gameObject;
             PushScript pushScript = obj.GetComponent<PushScript>();
-            if (!pushScript.push(new Vector3(x, y, 0f))) {
+            if (!pushScript.push(new Vector3(x, y, 0f)) && (!path.HasTile(Vector3Int.FloorToInt(destination.position + new Vector3(x, y, 0f))) || path.HasTile(Vector3Int.FloorToInt(destination.position)))) {
                 pushScript.swap(new Vector3(x, y, 0f));
             }
             destination.position += new Vector3(x, y, 0f);
