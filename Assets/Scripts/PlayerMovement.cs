@@ -55,10 +55,13 @@ public class PlayerMovement : MonoBehaviour
         else if (pushResult) {
             GameObject obj = pushResult.gameObject;
             PushScript pushScript = obj.GetComponent<PushScript>();
-            if (!pushScript.push(new Vector3(x, y, 0f)) && (!path.HasTile(Vector3Int.FloorToInt(destination.position + new Vector3(x, y, 0f))) || path.HasTile(Vector3Int.FloorToInt(destination.position)))) {
+            bool objPushed = pushScript.push(new Vector3(x, y, 0f));
+            if (!objPushed && (!path.HasTile(Vector3Int.FloorToInt(destination.position + new Vector3(x, y, 0f))) || path.HasTile(Vector3Int.FloorToInt(destination.position)))) {
                 pushScript.swap(new Vector3(x, y, 0f));
+                destination.position += new Vector3(x, y, 0f);
+            } else if (objPushed) {
+                destination.position += new Vector3(x, y, 0f);
             }
-            destination.position += new Vector3(x, y, 0f);
         }
     }
 }
