@@ -9,13 +9,17 @@ public class PlayerMovement : MonoBehaviour
     public Transform destination;
     public LayerMask wall;
     public LayerMask canPush;
+    public LayerMask firefly;
     public Tilemap path;
-    public bool canSwap = true;
+    public bool moving;
+    public gameController gameControllerObj;
+    public LayerMask Light;
 
     // Start is called before the first frame update
     void Start()
     {
         destination.parent = null;
+        moving = false;
     }
 
     // Update is called once per frame
@@ -23,44 +27,44 @@ public class PlayerMovement : MonoBehaviour
     {
         transform.position = Vector3.MoveTowards(transform.position, destination.position, speed * Time.deltaTime);
 
-        if (Vector3.Distance(transform.position, destination.position) <= 0.05f) {
-            if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
-            {
-                movePlayer(1f, 0f);
-            }
-            else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
-            {
-                movePlayer(-1f, 0f);
-            }
-            else if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
-            {
-                movePlayer(0f, 1f);
-            }
-            else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
-            {
-                movePlayer(0f, -1f);
-            }
+        if (Vector3.Distance(transform.position, destination.position) <= 0.05f)
+        {
+            moving = false;
         }
+        else moving = true;
 
     }
 
-    void movePlayer(float x, float y) {
+    public void movePlayer(float x, float y) {
         Collider2D wallResult = Physics2D.OverlapCircle(destination.position + new Vector3(x, y, 0f), 0.2f, wall);
         Collider2D pushResult = Physics2D.OverlapCircle(destination.position + new Vector3(x, y, 0f), 0.2f, canPush);
+        Collider2D fireflyResult = Physics2D.OverlapCircle(destination.position + new Vector3(x, y, 0f), 0.2f, firefly);
+        Collider2D lightResult = Physics2D.OverlapCircle(destination.position + new Vector3(x, y, 0f), 0.2f, Light);
 
-        if (!wallResult && !pushResult)
+        if (fireflyResult)
         {
-            destination.position += new Vector3(x, y, 0f);
+            gameControllerObj.fireflyRemove(fireflyResult.gameObject);
         }
-        else if (pushResult) {
-            GameObject obj = pushResult.gameObject;
-            PushScript pushScript = obj.GetComponent<PushScript>();
-            bool objPushed = pushScript.push(new Vector3(x, y, 0f));
-            if (!objPushed && (!path.HasTile(Vector3Int.FloorToInt(destination.position + new Vector3(x, y, 0f))) || path.HasTile(Vector3Int.FloorToInt(destination.position)))) {
-                pushScript.swap(new Vector3(x, y, 0f));
+        else if (lightResult)
+        {
+            if (!wallResult && !pushResult)
+            {
                 destination.position += new Vector3(x, y, 0f);
-            } else if (objPushed) {
-                destination.position += new Vector3(x, y, 0f);
+            }
+            else if (pushResult && !wallResult)
+            {
+                GameObject obj = pushResult.gameObject;
+                PushScript pushScript = obj.GetComponent<PushScript>();
+                bool objPushed = pushScript.push(new Vector3(x, y, 0f));
+                if (!objPushed && (!path.HasTile(Vector3Int.FloorToInt(destination.position + new Vector3(x, y, 0f))) || path.HasTile(Vector3Int.FloorToInt(destination.position))))
+                {
+                    pushScript.swap(new Vector3(x, y, 0f));
+                    destination.position += new Vector3(x, y, 0f);
+                }
+                else if (objPushed)
+                {
+                    destination.position += new Vector3(x, y, 0f);
+                }
             }
         }
     }
